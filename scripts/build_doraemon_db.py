@@ -1,34 +1,19 @@
 #!/usr/bin/env python3
 """
-Doraemon Database Builder v3.0 with JP Story Cross-Reference
-Captures Japanese Story Numbers from sidebar for bidirectional search
+Doraemon Database Builder v4.0
+Robust scraper with flexible selectors and fallback parsing
 """
 
 from playwright.sync_api import sync_playwright
+from bs4 import BeautifulSoup
 import json
 import os
 from datetime import datetime
 import re
 import time
 
-def normalize_category(raw_category):
-    """Normalize category names to match Discord bot expectations"""
-    cat = raw_category.strip().lower()
-    
-    mappings = {
-        'season 1': 'season_1', 'season 2': 'season_2',
-        'season 3': 'season_3', 'season 4': 'season_4',
-        'season 5': 'season_5', 'season 6': 'season_6',
-        'season 7': 'season_7', 'season 8': 'season_8',
-        'season 9': 'season_9', 'season 10': 'season_10',
-        'specials': 'special_episodes', 'special': 'special_episodes',
-        'classic doraemon': 'classic_doraemon', 'classic': 'classic_doraemon',
-    }
-    
-    return mappings.get(cat, cat.replace(' ', '_'))
-
 def scrape_with_playwright():
-    """Scrape using JavaScript rendering with JP story number extraction"""
+    """Scrape using JavaScript rendering with multiple fallback strategies"""
     url = os.getenv('DORAEMON_SITE_URL', 'https://doraemon-hindi-1979.netlify.app')
     
     print(f"🔍 Launching browser: {url}")
@@ -38,101 +23,140 @@ def scrape_with_playwright():
         page = browser.new_page()
         
         print(f"🌐 Navigating to {url}")
-        page.goto(url, wait_until='networkidle', timeout=60000)
-        page.wait_for_timeout(3000)
+        page.goto(url, wait_until='networkidle', timeout=90000)
+        time.sleep(5)  # Extended wait for all JS
         
         episodes = []
         
-        tab_names = ['Season 1', 'Season 2', 'Season 3', 'Season 4', 'Season 5',
-                     'Season 6', 'Season 7', 'Season 8', 'Season 9', 'Season 10',
-                     'Specials', 'Classic Doraemon']
+        # Strategy 1: Get full page HTML and parse with BeautifulSoup
+        print("  📄 Parsing full page HTML...")
+        html = page.content()
+        soup = BeautifulSoup(html, 'html.parser')
         
-        for tab_idx, tab in enumerate(tab_names):
-            print(f"  🔄 Clicking tab ({tab_idx+1}/{len(tab_names)}): {tab}")
-            
-            try:
-                # Try to click the tab
-                page.click(f'a:has-text("{tab}"), button:has-text("{tab}")', timeout=5000)
-                page.wait_for_timeout(1500)  # Wait for content
-                
-                category = normalize_category(tab)
-                
-                # Get all visible episode cards
-                # Adjust selector based on site structure
-                cards = page.query_selector_all('.episode-card, .card, article, [class*="episode"]')
-                
-                if not cards:
-                    # Try alternate selector (table rows)
-                    cards = page.query_selector_all('tr')
-                
-                for idx, card in enumerate(cards[:150]):  # Limit per tab
-                    try:
-                        text = card.text_content()
-                        if not text or len(text) < 10:
-                            continue
-                        
-                        # Extract IN episode number
-                        in_match = re.search(r'(S\d{2}E\d{2}|SPE\d{2}|CE\d{2})', text)
-                        
-                        if not in_match:
-                            # Try S01E01 pattern
-                            in_match = re.search(r'([S]?(\d{2}[A-Z])?(\d{2}))', text)
-                        
-                        if in_match:
-                            ep_raw = in_match.group(1)
-                            
-                            # Extract title (usually after episode number)
-                            title = re.sub(r'(S\d{2}E\d{2}|SPE\d{2}|CE\d{2})\s*', '', text).strip()
-                            title = title[:100] if title else f"Episode {ep_raw}"
-                            
-                            # Extract JP story number from sidebar/text
-                            jp_match = re.search(r'(JP|Japan)[#:.\s]*(\d+)', text, re.I)
-                            jp_story = jp_match.group(2) if jp_match else None
-                            
-                            # If no JP number in card, check for sidebar reference
-                            jp_alt_match = re.search(r'Story\s*(\d+)|#\s*(\d+)', text)
-                            if not jp_story and jp_alt_match:
-                                jp_story = jp_alt_match.group(1) or jp_alt_match.group(2)
-                            
-                            episodes.append({
-                                'raw_episode': ep_raw,
-                                'in_season_episode': ep_raw,  # Indian format
-                                'jp_story_number': jp_story,  # Japanese format
-                                'episode_number': re.search(r'\d+', ep_raw).group(0) if ep_match else '0',
-                                'title': title,
-                                'category': category,
-                                'search_blob': f"{title} {category} {ep_raw} {jp_story}",
-                                'has_jp_reference': bool(jp_story),
-                                'scraped_at': datetime.now().isoformat()
-                            })
-                            
-                            # Progress indicator
-                            if idx % 20 == 0:
-                                print(f"    Found {len([e for e in episodes if e['category'] == category])} in {category}")
-                    
-                    except Exception as e:
-                        continue
-                
-            except Exception as e:
-                print(f"    ⚠️ Failed to click {tab}: {e}")
+        # Find ALL text containing episode patterns
+        all_text = soup.get_text(separator='\n')
+        lines = all_text.split('\n')
+        
+        current_section = None
+        seen_titles = set()
+        
+        for line in lines:
+            line = line.strip()
+            if not line or len(line) < 3:
                 continue
+            
+            # Detect section headers
+            if re.match(r'^season\s+\d+$|specials|classic', line, re.I):
+                section_lower = line.lower()
+                if 'season' in section_lower:
+                    num = re.search(r'\d+', section_lower).group(0)
+                    current_section = f'season_{num}'
+                elif 'special' in section_lower:
+                    current_section = 'special_episodes'
+                elif 'classic' in section_lower:
+                    current_section = 'classic_doraemon'
+                print(f"  📁 Section: {current_section}")
+                continue
+            
+            # Detect episode pattern (S01E01, SPE01, CE01)
+            ep_match = re.search(r'(S\d{2}E\d{2}|SPE\d{2}|CE\d{2})', line)
+            
+            if ep_match:
+                ep_raw = ep_match.group(1)
+                
+                # Extract title (everything after episode number)
+                title = re.sub(r'S\d{2}E\d{2}|SPE\d{2}|CE\d{2}\s*', '', line).strip()
+                title = title[:100] if title else f"Episode {ep_raw}"
+                
+                # Avoid duplicates
+                title_key = title.lower()[:50]
+                if title_key in seen_titles:
+                    continue
+                seen_titles.add(title_key)
+                
+                # Extract JP story number from surrounding text
+                jp_match = re.search(r'(JP|Japan|Story)[#:\s]*\s*(\d+)', line, re.I)
+                jp_story = jp_match.group(2) if jp_match else None
+                
+                episodes.append({
+                    'raw_episode': ep_raw,
+                    'in_season_episode': ep_raw,
+                    'jp_story_number': jp_story,
+                    'episode_number': re.search(r'\d+', ep_raw).group(0),
+                    'title': title,
+                    'category': current_section or 'unknown',
+                    'search_blob': f"{title} {current_section or ''} {ep_raw} {jp_story or ''}",
+                    'has_jp_reference': bool(jp_story),
+                    'scraped_at': datetime.now().isoformat()
+                })
+        
+        # Strategy 2: If we got too few episodes, try element-by-element
+        if len(episodes) < 100:
+            print("  ⚠️ Low episode count, trying element extraction...")
+            
+            # Find all divs/articles with potential episode data
+            potential_cards = soup.find_all(['div', 'article', 'li', 'span'])
+            
+            for card in potential_cards:
+                text = card.get_text(strip=True)
+                if not text:
+                    continue
+                
+                # Look for episode pattern
+                ep_match = re.search(r'(S\d{2}E\d{2}|SPE\d{2}|CE\d{2})', text)
+                
+                if ep_match:
+                    ep_raw = ep_match.group(1)
+                    title = re.sub(r'S\d{2}E\d{2}|SPE\d{2}|CE\d{2}\s*', '', text).strip()
+                    title = title[:100] if title else f"Episode {ep_raw}"
+                    
+                    title_key = title.lower()[:50]
+                    if title_key in seen_titles:
+                        continue
+                    seen_titles.add(title_key)
+                    
+                    current_sec = 'unknown'
+                    # Try to infer section from nearby context
+                    parent = card.find_parent(['div', 'section', 'article'])
+                    if parent:
+                        parent_text = parent.get_text().lower()
+                        if 'season' in parent_text:
+                            num = re.search(r'season\s+(\d+)', parent_text)
+                            if num:
+                                current_sec = f'season_{num.group(1)}'
+                        elif 'special' in parent_text:
+                            current_sec = 'special_episodes'
+                        elif 'classic' in parent_text:
+                            current_sec = 'classic_doraemon'
+                    
+                    episodes.append({
+                        'raw_episode': ep_raw,
+                        'in_season_episode': ep_raw,
+                        'jp_story_number': None,  # Try harder in next pass
+                        'episode_number': re.search(r'\d+', ep_raw).group(0),
+                        'title': title,
+                        'category': current_sec,
+                        'search_blob': f"{title} {current_sec} {ep_raw}",
+                        'has_jp_reference': False,
+                        'scraped_at': datetime.now().isoformat()
+                    })
         
         browser.close()
         return episodes
 
 def main():
     episodes = scrape_with_playwright()
+    
     print(f"\n{'='*50}")
     print(f"✅ SCRAPE COMPLETE: {len(episodes)} total episodes")
     print(f"{'='*50}")
     
-    # Calculate category distribution
     categories = {}
     has_jp_ref = 0
     for ep in episodes:
         cat = ep.get('category', 'unknown')
         categories[cat] = categories.get(cat, 0) + 1
-        if ep.get('has_jp_reference'):
+        if ep.get('jp_story_number'):
             has_jp_ref += 1
     
     print("\n📊 Category Distribution:")
@@ -146,7 +170,7 @@ def main():
     
     print(f"\n🔗 Episodes with JP Story Reference: {has_jp_ref}/{len(episodes)}")
     
-    # Save all JSON files (same as before...)
+    # Save files
     os.makedirs('database', exist_ok=True)
     
     search_index = {
@@ -162,11 +186,25 @@ def main():
     with open('database/search_index.json', 'w', encoding='utf-8') as f:
         json.dump(search_index, f, indent=2, ensure_ascii=False)
     
-    # ... save other JSON files same as before
     with open('database/episodes.json', 'w', encoding='utf-8') as f:
         json.dump({'episodes': episodes, 'metadata': {'total': len(episodes), 'generated_at': datetime.now().isoformat()}}, f, indent=2, ensure_ascii=False)
     
+    with open('database/metadata.json', 'w', encoding='utf-8') as f:
+        json.dump({'total_episodes': len(episodes), 'categories': list(categories.keys()), 'generated_at': datetime.now().isoformat()}, f, indent=2)
+    
+    with open('database/summary.json', 'w', encoding='utf-8') as f:
+        json.dump({'total_episodes': len(episodes), 'category_breakdown': categories, 'generated_at': datetime.now().isoformat()}, f, indent=2)
+    
+    with open('database/manga.json', 'w', encoding='utf-8') as f:
+        json.dump({'metadata': {'source': 'Google Sheets', 'generated_at': datetime.now().isoformat()}, 'items': [], 'episode_count': len(episodes)}, f, indent=2)
+    
+    print("\n💾 Saved to database/")
     print("✅ Database build complete!")
+    
+    if categories.get('special_episodes', 0) != 72 or categories.get('classic_doraemon', 0) != 77:
+        print("\n⚠️ WARNING: Special/Classic counts don't match expected!")
+        print("  This may indicate the site structure differs from expectations.")
+        print("  Suggestion: Inspect the raw HTML to identify correct selectors.")
 
 if __name__ == '__main__':
     main()
