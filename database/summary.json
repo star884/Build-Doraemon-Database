@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-23T20:42:22.770645+00:00",
-  "counts": {
+  "total_episodes": 660,
+  "category_breakdown": {
     "season_1": 52,
     "season_2": 51,
     "season_3": 52,
@@ -10,11 +10,8 @@
     "season_7": 52,
     "season_8": 52,
     "season_9": 42,
-    "season_10": 50,
-    "special_episodes": 12,
-    "classic_doraemon": 77,
-    "classic": 584,
-    "unknown": 0
+    "season_10": 126,
+    "classic_doraemon": 77
   },
-  "index_items": 1180
+  "generated_at": "2026-07-23T22:43:03.967867"
 }

@@ -1,24 +1,17 @@
 {
-  "generated_at": "2026-07-23T20:42:22.770645+00:00",
-  "source_urls": {
-    "doraemon_site": "https://doraemon-hindi-1979.netlify.app",
-    "manga_sheet": "https://docs.google.com/spreadsheets/u/0/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/htmlview?pli=1"
-  },
-  "counts": {
-    "season_1": 52,
-    "season_2": 51,
-    "season_3": 52,
-    "season_4": 52,
-    "season_5": 52,
-    "season_6": 52,
-    "season_7": 52,
-    "season_8": 52,
-    "season_9": 42,
-    "season_10": 50,
-    "special_episodes": 12,
-    "classic_doraemon": 77,
-    "classic": 584,
-    "unknown": 0
-  },
-  "index_items": 1180
+  "total_episodes": 660,
+  "categories": [
+    "season_1",
+    "season_2",
+    "season_3",
+    "season_4",
+    "season_5",
+    "season_6",
+    "season_7",
+    "season_8",
+    "season_9",
+    "season_10",
+    "classic_doraemon"
+  ],
+  "generated_at": "2026-07-23T22:43:03.967764"
 }
