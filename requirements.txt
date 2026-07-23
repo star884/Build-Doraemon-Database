@@ -1,7 +1,10 @@
+# GitHub Actions Scraper Dependencies
 requests
 beautifulsoup4
 pandas
 lxml
 html5lib
+
+# Discord Bot Dependencies
 discord.py>=2.4.0
 python-dotenv>=1.0.0
