@@ -3,7 +3,7 @@ name: Build Doraemon Database
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 3 * * *" # daily
+    - cron: "17 3 * * *"
 
 permissions:
   contents: write
@@ -22,9 +22,9 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-  run: |
-    python -m pip install --upgrade pip
-    pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Build database
         env:
