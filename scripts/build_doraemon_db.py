@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import os
 import re
-from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -17,7 +16,6 @@ ROOT = Path(__file__).resolve().parents[1]
 DB_DIR = ROOT / "database"
 DB_DIR.mkdir(parents=True, exist_ok=True)
 
-# Removed #classic - fetch base page that contains ALL data
 DORAEMON_SITE_URL = os.getenv("DORAEMON_SITE_URL", "https://doraemon-hindi-1979.netlify.app")
 MANGA_SHEET_URL = os.getenv("MANGA_SHEET_URL", "")
 
@@ -27,7 +25,6 @@ UA = {
         "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
     )
 }
-
 
 def clean_text(value: Any) -> Optional[str]:
     if value is None:
@@ -40,14 +37,12 @@ def clean_text(value: Any) -> Optional[str]:
         return None
     return text
 
-
 def norm_key(value: Any) -> str:
     text = clean_text(value) or ""
     text = text.lower()
     text = re.sub(r"[^a-z0-9]+", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
-
 
 def fetch_html(url: str) -> str:
     print(f"DEBUG: Fetching {url}")
@@ -56,76 +51,44 @@ def fetch_html(url: str) -> str:
     print(f"DEBUG: Got {len(r.text)} bytes")
     return r.text
 
-
-def parse_markdown_tables(html_content: str) -> List[tuple]:
-    """Parse markdown-style pipe tables from HTML text."""
-    tables = []
+def detect_category_from_episode_data(rows: List[Dict[str, str]]) -> str:
+    """Detect category by analyzing actual episode codes in the data."""
+    # Sample first few rows to find patterns
+    sample_size = min(5, len(rows))
     
-    # Look for patterns like: | column1 | column2 | column3 |
-    pattern = r'\|\s*[^\|]+\s*\|(?:\s*[^\|]+\s*\|)+'
-    matches = re.findall(pattern, html_content, re.MULTILINE)
-    
-    for match in matches:
-        rows = []
-        lines = match.strip().split('\n')
+    for row in rows[:sample_size]:
+        combined = " ".join(str(v) for v in row.values() if v)
         
-        for line in lines:
-            # Extract cells between pipes
-            cells = re.findall(r'\|([^|]+)\|', line)
-            cells = [clean_text(c) for c in cells]
-            cells = [c for c in cells if c]  # Remove empty
-            if cells and len(cells) >= 2:
-                rows.append(cells)
+        # Check for Special Episodes (SPE30, SPE31, etc.)
+        if re.search(r'\bSPE\d+\b', combined.upper()):
+            print(f"DEBUG: Detected SPECIAL_EPISODES from codes like SPE")
+            return "special_episodes"
         
-        if len(rows) >= 2:  # Need header + at least one data row
-            tables.append(rows)
-    
-    return tables
-
-
-def parse_html_tables(soup: BeautifulSoup) -> List[List[Dict[str, str]]]:
-    """Parse traditional HTML tables."""
-    all_rows = []
-    tables = soup.find_all("table")
-    
-    print(f"DEBUG: Found {len(tables)} HTML tables")
-    
-    for table in tables:
-        rows = []
-        headers = []
+        # Check for Classic Doraemon (CE38, CE39, etc.)
+        if re.search(r'\bCE\d+\b', combined.upper()):
+            print(f"DEBUG: Detected CLASSIC_DORAEMON from codes like CE")
+            return "classic_doraemon"
         
-        # Get header row
-        header_row = table.find("tr")
-        if header_row:
-            th_cells = header_row.find_all(["th", "td"])
-            headers = [clean_text(c.get_text(" ", strip=True)) for c in th_cells]
+        # Check for Season/Episode format (S04E25, S10E34, etc.)
+        m = re.search(r'\bS(\d{1,2})E(\d{1,2})\b', combined.upper())
+        if m:
+            season_num = int(m.group(1))
+            print(f"DEBUG: Detected SEASON_{season_num} from codes like S04E25")
+            return f"season_{season_num}"
         
-        # Get data rows
-        for tr in table.find_all("tr")[1:] if headers else table.find_all("tr"):
-            td_cells = tr.find_all(["td", "th"])
-            values = [clean_text(c.get_text(" ", strip=True)) for c in td_cells]
-            
-            if headers and len(values) == len(headers):
-                row_dict = dict(zip(headers, values))
-                if any(row_dict.values()):
-                    rows.append(row_dict)
-            elif not headers and len(values) >= 2:
-                # No headers, just raw values
-                row_dict = {f"col_{i}": v for i, v in enumerate(values)}
-                rows.append(row_dict)
-        
-        if rows:
-            all_rows.append({"headers": headers, "rows": rows})
+        # Check for JP story number format (1129 / 1130)
+        m = re.search(r'(\d{3,4})\s*/\s*(\d{3,4})', combined)
+        if m:
+            # This is likely a season table with dual episode numbers
+            # Fall back to checking section heading
+            pass
     
-    return all_rows
-
+    return "unknown"
 
 def nearest_section_heading(html_text: str, position: int) -> str:
     """Find the closest heading text before a position in HTML."""
-    # Look backwards from position for section markers
     before = html_text[max(0, position-500):position]
     
-    # Common section indicators
     patterns = [
         r'Season\s*(10|[1-9])',
         r'Classic\s*Doraemon',
@@ -141,49 +104,28 @@ def nearest_section_heading(html_text: str, position: int) -> str:
     
     return "unknown"
 
-
-def detect_category_from_headers(headers: List[str], section_hint: str) -> str:
-    """Detect category based on headers and section hint."""
-    h_section = section_hint.lower()
-    hdrs = " ".join(norm_key(h) for h in headers)
-    
-    if "classic doraemon" in h_section:
-        return "classic_doraemon"
-    if "special" in h_section or "special episodes" in h_section:
-        return "special_episodes"
-    
-    m = re.search(r"season\s*(10|[1-9])", h_section)
-    if m:
-        return f"season_{int(m.group(1))}"
-    
-    # Detect from headers
-    if "jp" in hdrs or "story" in hdrs:
-        if "season" in hdrs or "in season" in hdrs:
-            return "classic"
-    
-    return "unknown"
-
-
 def canonicalize_record(raw: Dict[str, str], category: str, heading: str, source: str) -> Dict[str, Any]:
-    """Normalize record fields."""
     lowered = {norm_key(k): v for k, v in raw.items()}
     
-    jp = lowered.get("jp_story_number") or lowered.get("jp_story_no") or lowered.get("jp") or lowered.get("col_0")
-    season_ep = lowered.get("in_season_episode") or lowered.get("in_season_episode_no") or lowered.get("col_1")
-    ep_no = lowered.get("in_episode_number") or lowered.get("in_ep_number") or lowered.get("col_2")
-    alt_ep = lowered.get("in_alternate_ep_no") or lowered.get("in_alternate_ep_number") or lowered.get("col_2")
-    title = lowered.get("title") or lowered.get("titles") or lowered.get("name") or lowered.get("col_3")
+    # Handle both named columns and positional col_N columns
+    jp = (lowered.get("jp_story_number") or lowered.get("jp_story_no") or 
+          lowered.get("jp") or lowered.get("col_0"))
+    season_ep = (lowered.get("in_season_episode") or lowered.get("in_season_episode_no") or 
+                 lowered.get("col_1"))
+    ep_no = (lowered.get("in_episode_number") or lowered.get("in_ep_number") or 
+             lowered.get("col_2"))
+    alt_ep = (lowered.get("in_alternate_ep_no") or lowered.get("in_alternate_ep_number") or 
+              lowered.get("in_alternate_ep_no.") or lowered.get("col_2"))
+    title = (lowered.get("title") or lowered.get("titles") or lowered.get("name") or 
+             lowered.get("col_3") or lowered.get("col_4"))
     
-    # If col-based, try to extract meaningful data
-    if not title and len(lowered) >= 4:
-        # Assume last column is title
-        for i in range(3, -1, -1):
+    # Try to extract title from any remaining column if col_3/4 empty
+    if not title:
+        for i in range(5, -1, -1):
             key = f"col_{i}"
             val = lowered.get(key)
-            if val and not re.match(r'^[\d\/\s]+$', val):  # Not just numbers
+            if val and not re.match(r'^[\d/\s\-]+$', val):
                 title = val
-                if ep_no is None and i == 2:
-                    ep_no = lowered.get("col_2")
                 break
     
     record = {
@@ -200,7 +142,6 @@ def canonicalize_record(raw: Dict[str, str], category: str, heading: str, source
     
     return record
 
-
 def generate_aliases(title: Optional[str], category: str, jp: Optional[str], ep_no: Optional[str]) -> List[str]:
     aliases = set()
     if title:
@@ -213,7 +154,6 @@ def generate_aliases(title: Optional[str], category: str, jp: Optional[str], ep_
         aliases.add(category.replace("_", " "))
     
     return sorted(a for a in aliases if a)
-
 
 def build_search_blob(rec: Dict[str, Any]) -> str:
     bits = [
@@ -234,105 +174,93 @@ def build_search_blob(rec: Dict[str, Any]) -> str:
     bits.extend(aliases)
     return norm_key(" ".join(bits))
 
-
-def parse_doraemon_site(url: str) -> Dict[str, List[Dict[str, Any]]]:
-    print("DEBUG: Starting parse_doraemon_site...")
-    html = fetch_html(url)
-    soup = BeautifulSoup(html, "html.parser")
-    
+def parse_html_tables(soup: BeautifulSoup, html: str) -> Dict[str, List[Dict[str, Any]]]:
+    """Parse HTML tables with proper category detection."""
     grouped: Dict[str, List[Dict[str, Any]]] = {
         "season_1": [], "season_2": [], "season_3": [], "season_4": [], "season_5": [],
         "season_6": [], "season_7": [], "season_8": [], "season_9": [], "season_10": [],
         "special_episodes": [], "classic_doraemon": [], "classic": [], "unknown": [],
     }
     
-    # Try HTML tables first
-    html_parsed = parse_html_tables(soup)
+    tables = soup.find_all("table")
+    print(f"DEBUG: Found {len(tables)} HTML tables")
     
-    print(f"DEBUG: HTML parser found {len(html_parsed)} parsed tables")
-    
-    for parsed_table in html_parsed:
-        rows = parsed_table["rows"]
-        headers = parsed_table.get("headers", [])
+    for table_idx, table in enumerate(tables):
+        # Parse table rows
+        rows = []
+        headers = []
+        
+        # Look for header row
+        header_row = None
+        for tr in table.find_all("tr")[:3]:  # Check first 3 rows for headers
+            th_cells = tr.find_all(["th", "td"])
+            if th_cells and any("ep" in str(cell).lower() or "story" in str(cell).lower() 
+                               or "number" in str(cell).lower() for cell in th_cells):
+                header_row = tr
+                headers = [clean_text(cell.get_text(" ", strip=True)) or f"col_{i}" 
+                          for i, cell in enumerate(th_cells)]
+                break
+        
+        # If no header found, use generic column names
+        if not headers:
+            first_tr = table.find("tr")
+            if first_tr:
+                td_cells = first_tr.find_all(["td", "th"])
+                headers = [f"col_{i}" for i in range(len(td_cells))]
+        
+        # Parse data rows
+        for tr in table.find_all("tr"):
+            cells = tr.find_all(["td", "th"])
+            # Skip header row
+            if cells == header_row.find_all(["th", "td"]) if header_row else False:
+                continue
+            
+            values = [clean_text(cell.get_text(" ", strip=True)) for cell in cells]
+            values = [v for v in values if v]  # Remove empty
+            
+            if len(values) >= 2:  # Minimum useful row
+                row_dict = {headers[i] if i < len(headers) else f"col_{i}": v 
+                           for i, v in enumerate(values)}
+                rows.append(row_dict)
         
         if not rows:
             continue
         
-        # Create normalized records
+        print(f"DEBUG: Table {table_idx + 1} has {len(rows)} rows, headers: {headers[:3]}")
+        
+        # DETECT CATEGORY FROM ACTUAL DATA
+        category = detect_category_from_episode_data(rows)
+        heading = nearest_section_heading(html, 0)
+        
+        if category == "unknown":
+            # Fallback: try to detect from row data patterns
+            first_row = rows[0] if rows else {}
+            combined = " ".join(str(v) for v in first_row.values())
+            
+            if "special" in combined.lower() or "alt" in combined.lower():
+                category = "special_episodes"
+            elif "classic" in combined.lower():
+                category = "classic_doraemon"
+        
+        print(f"DEBUG: Table assigned to category '{category}'")
+        
+        # Add records to appropriate groups
         for row_data in rows:
-            # Convert list tuples to dict if needed
-            if isinstance(row_data, tuple):
-                row_dict = {headers[i] if i < len(headers) else f"col_{i}": v for i, v in enumerate(row_data)}
-            else:
-                row_dict = row_data
+            rec = canonicalize_record(row_data, category, heading, DORAEMON_SITE_URL)
             
-            heading = nearest_section_heading(html, 0)  # Simplified
-            category = detect_category_from_headers(list(row_dict.keys()), heading)
-            
-            rec = canonicalize_record(row_dict, category, heading, url)
-            
-            cat_key = category if category.startswith("season_") else category
-            if cat_key in grouped:
-                grouped[cat_key].append(rec)
-                if category != "classic":
+            # Only add if we have meaningful title or episode number
+            if rec.get("title") or rec.get("india_episode_number"):
+                cat_key = category
+                
+                # Add to season-specific bucket
+                if cat_key in grouped:
+                    grouped[cat_key].append(rec)
+                
+                # Add to classic group for all non-special content
+                if category not in ("special_episodes", "classic"):
                     grouped["classic"].append(rec)
     
-    # Fallback: Try markdown-style pipe tables
-    if sum(len(v) for v in grouped.values()) < 10:
-        print("DEBUG: HTML parsing returned too few results, trying markdown tables...")
-        md_tables = parse_markdown_tables(html)
-        print(f"DEBUG: Markdown parser found {len(md_tables)} table blocks")
-        
-        current_category = "unknown"
-        current_heading = "unknown"
-        
-        for table_rows in md_tables:
-            if len(table_rows) < 3:
-                continue
-            
-            # First row is headers
-            headers = [f"col_{i}" for i in range(len(table_rows[0]))]
-            
-            # Try to detect category from first data row
-            first_data = table_rows[1] if len(table_rows) > 1 else []
-            combined = " ".join(first_data)
-            
-            if "special" in combined.lower() or "spe" in combined.lower():
-                current_category = "special_episodes"
-                current_heading = "Special Episodes"
-            elif re.search(r"s\d+\s*e\d+", combined.lower()):
-                # Season/episode format like S04E25
-                m = re.search(r's(\d+)\s*e', combined.lower())
-                if m:
-                    season_num = min(int(m.group(1)), 10)
-                    current_category = f"season_{season_num}"
-                    current_heading = f"Season {season_num}"
-            elif "ce" in combined.lower() or "classic" in combined.lower():
-                current_category = "classic_doraemon"
-                current_heading = "Classic Doraemon"
-            
-            # Process data rows (skip header)
-            for row_values in table_rows[1:]:
-                row_dict = {headers[i]: v for i, v in enumerate(row_values)}
-                rec = canonicalize_record(row_dict, current_category, current_heading, url)
-                
-                if rec.get("title"):  # Only add if we got meaningful data
-                    cat_key = current_category if current_category.startswith("season_") else current_category
-                    if cat_key in grouped:
-                        grouped[cat_key].append(rec)
-                        if current_category != "classic":
-                            grouped["classic"].append(rec)
-    
-    # Print counts for debugging
-    print(f"DEBUG: Episode counts by category:")
-    for cat, items in grouped.items():
-        print(f"  {cat}: {len(items)}")
-    
-    total = sum(len(v) for v in grouped.values())
-    print(f"DEBUG: Total episodes parsed: {total}")
-    
     return grouped
-
 
 def parse_manga_sheet(url: str) -> List[Dict[str, Any]]:
     if not url:
@@ -358,7 +286,6 @@ def parse_manga_sheet(url: str) -> List[Dict[str, Any]]:
     
     print(f"DEBUG: Parsed {len(manga_rows)} manga rows")
     return manga_rows
-
 
 def make_index(all_groups: Dict[str, List[Dict[str, Any]]], manga_rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     items: List[Dict[str, Any]] = []
@@ -412,20 +339,26 @@ def make_index(all_groups: Dict[str, List[Dict[str, Any]]], manga_rows: List[Dic
         "items": items,
     }
 
-
 def write_json(path: Path, data: Any) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"DEBUG: Wrote {path.name} ({len(json.dumps(data))} bytes)")
-
 
 def main() -> None:
     print("Starting...")
     print("Website...")
     
-    groups = parse_doraemon_site(DORAEMON_SITE_URL)
+    html = fetch_html(DORAEMON_SITE_URL)
+    soup = BeautifulSoup(html, "html.parser")
+    
+    groups = parse_html_tables(soup, html)
     manga_rows = parse_manga_sheet(MANGA_SHEET_URL)
     
     print("Episode counts...")
+    for cat, items in groups.items():
+        print(f"  {cat}: {len(items)}")
+    total = sum(len(v) for v in groups.values())
+    print(f"DEBUG: Total episodes parsed: {total}")
+    
     db = make_index(groups, manga_rows)
 
     print("Writing files...")
@@ -443,7 +376,6 @@ def main() -> None:
     
     print("Done.")
     print(f"Total items in index: {db['metadata']['index_items']}")
-
 
 if __name__ == "__main__":
     main()
