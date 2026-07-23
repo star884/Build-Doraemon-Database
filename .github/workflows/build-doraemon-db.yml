@@ -1,47 +1,10 @@
-name: Build Doraemon Database
-
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "17 3 * * *"
-
-permissions:
-  contents: write
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
+      - name: Install Playwright Browsers
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
+          playwright install chromium
+          playwright install-deps chromium
+      
       - name: Build database
         env:
           DORAEMON_SITE_URL: https://doraemon-hindi-1979.netlify.app
-          MANGA_SHEET_URL: https://docs.google.com/spreadsheets/u/0/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/htmlview?pli=1
         run: |
           python scripts/build_doraemon_db.py
-
-      - name: Commit changes
-        run: |
-          git add database
-          if git diff --cached --quiet; then
-            echo "No changes."
-            exit 0
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "Update Doraemon database"
-          git push
