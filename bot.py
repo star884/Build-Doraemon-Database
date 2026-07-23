@@ -138,7 +138,7 @@ async def help_cmd(interaction):
 • `/season 1` - Show Season 1 episodes
 • `/season classic` - Show classic doraemon episodes
 '''
-    embed.set_footer(text='Made with ❤️ by Star884')
+    embed.set_footer(text='Made with ❤️ by Star884/Unhappycharity')
     
     await interaction.response.send_message(embed=embed)
 
