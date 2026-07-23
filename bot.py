@@ -1,4 +1,4 @@
-echo "import discord
+import discord
 import json
 import os
 from discord import app_commands, Embed
@@ -81,7 +81,7 @@ async def season_cmd(interaction, season: str):
     
     # Paginate large seasons
     PAGE_SIZE = 10
-    for p in range(0, len(filtered), PAGE_SIZE):
+    for p in range(0, min(len(filtered), 50), PAGE_SIZE):
         chunk = filtered[p:p + PAGE_SIZE]
         page_num = (p // PAGE_SIZE) + 1
         
@@ -95,7 +95,7 @@ async def season_cmd(interaction, season: str):
         
         total_pages = (len(filtered) // PAGE_SIZE) + 1
         if total_pages > 1:
-            embed.set_footer(text=f'Page {page_num} of {total_pages} | Use /season \"{season}\" for full list')
+            embed.set_footer(text=f'Page {page_num} of {total_pages} | Use /season "{season}" for full list')
         
         if p == 0:
             await interaction.followup.send(embed=embed)
@@ -116,7 +116,7 @@ async def stats_cmd(interaction):
     for cat, cnt in sorted(counts.items(), key=lambda x: -x[1]):
         embed.add_field(name=cat.replace('_', ' ').title(), value=f'**{cnt}** episodes', inline=True)
     
-    embed.set_footer(text=f'Database generated at {DB.get(\"metadata\", {}).get(\"generated_at\", \"unknown\")}')
+    embed.set_footer(text=f'Database generated at {DB.get("metadata", {}).get("generated_at", "unknown")}')
     
     await interaction.response.send_message(embed=embed)
 
@@ -142,6 +142,25 @@ async def help_cmd(interaction):
     
     await interaction.response.send_message(embed=embed)
 
+# Helper function for search results
+async def show_results(interaction, results, query):
+    PAGE_SIZE = 5
+    chunk = results[:PAGE_SIZE]
+    
+    embed = Embed(title=f"🔍 Episodes matching '{query}'", color=0x6d4aff)
+    for r in chunk:
+        title = r.get('title', 'Unknown')[:70]
+        cat = r.get('category', 'unknown').replace('_', ' ').title()
+        ep = r.get('india_episode_number', 'N/A')
+        embed.add_field(name=f'**#{ep} {title}**', value=cat, inline=False)
+    
+    footer = f'Found {len(results)} result(s)'
+    if len(results) > 5:
+        footer += ' (showing top 5)'
+    embed.set_footer(text=footer)
+    
+    await interaction.response.send_message(embed=embed)
+
 # --- ON READY ---
 @bot.event
 async def on_ready():
@@ -154,4 +173,4 @@ async def on_ready():
         for guild in bot.guilds:
             print(f'  - {guild.name} (ID: {guild.id})')
 
-bot.run(TOKEN)" > bot.py
+bot.run(TOKEN)
