@@ -28,20 +28,23 @@ jobs:
 
       - name: Build database
         env:
-          DORAEMON_SITE_URL: https://doraemon-hindi-1979.netlify.app/#classic
+          DORAEMON_SITE_URL: https://doraemon-hindi-1979.netlify.app
           MANGA_SHEET_URL: https://docs.google.com/spreadsheets/u/0/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/htmlview?pli=1
         run: |
           python scripts/build_doraemon_db.py
 
       - name: Commit changes
         run: |
-          if git diff --quiet; then
+          # Stage the database directory first
+          git add database
+          
+          # Check if there are any staged changes (includes new files)
+          if git diff --cached --quiet; then
             echo "No changes."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add database
           git commit -m "Update Doraemon database"
           git push
