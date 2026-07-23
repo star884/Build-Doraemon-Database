@@ -1,11 +1,5 @@
-# GitHub Actions Scraper Dependencies
 requests>=2.31.0
 beautifulsoup4>=4.12.0
 playwright>=1.40.0
-pandas>=2.0.0
-lxml>=4.9.0
-html5lib>=1.1
-
-# Discord Bot Dependencies
 discord.py>=2.4.0
 python-dotenv>=1.0.0
