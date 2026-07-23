@@ -127,8 +127,9 @@ async def jp_cmd(interaction, jp_number: str):
         return
     
     first = results[0]
+    title = first.get('title', 'Unknown')
     embed = Embed(title=f"🇯🇵 JP Story #{jp_number}", color=0x6d4aff)
-    embed.add_field(name='Title', value=first.get('title', 'Unknown'), inline=False)
+    embed.add_field(name='Title', value=title, inline=False)
     embed.add_field(name='Indian Episode', value=first.get('in_season_episode', 'N/A'), inline=True)
     embed.add_field(name='Category', value=first.get('category', 'unknown').replace('_', ' ').title(), inline=True)
     embed.set_footer(text=f'Total matches: {len(results)}')
