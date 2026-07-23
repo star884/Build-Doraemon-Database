@@ -35,10 +35,7 @@ jobs:
 
       - name: Commit changes
         run: |
-          # Stage the database directory first
           git add database
-          
-          # Check if there are any staged changes (includes new files)
           if git diff --cached --quiet; then
             echo "No changes."
             exit 0
