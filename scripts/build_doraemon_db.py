@@ -32,7 +32,7 @@ def scrape_with_playwright():
         seen_titles = set()
         seen_episodes = set()
         
-        for line in lines:
+        for i, line in enumerate(lines):
             line = line.strip()
             if not line or len(line) < 3:
                 continue
@@ -75,8 +75,39 @@ def scrape_with_playwright():
                 elif not current_section:
                     current_section = 'unknown'
                 
-                jp_match = re.search(r'(JP|Japan|Story)[#:\s]*(\d+)', line, re.I)
-                jp_story = jp_match.group(2) if jp_match else None
+                # Extract JP story number - improved patterns
+                jp_story = None
+                
+                # Pattern 1: Explicit "JP: 150" or "JP #150" or "Story: 150"
+                jp_patterns = [
+                    r'(?:JP|jp|Story|story|Japanese)[:\s#]*(\d+)',  # JP:150, JP #150, Story:150
+                    r'\(JP\s*(\d+)\)',                               # (JP 150)
+                    r'\[JP\s*(\d+)\]',                               # [JP 150]
+                    r'JP.*?(\d{2,3})(?:\D|$)',                       # JP...150 (standalone 2-3 digits)
+                ]
+                
+                for pattern in jp_patterns:
+                    jp_match = re.search(pattern, line, re.I)
+                    if jp_match:
+                        jp_story = jp_match.group(1)
+                        break
+                
+                # Pattern 2: Look at next line for JP reference (sometimes on separate line)
+                if not jp_story and i + 1 < len(lines):
+                    next_line = lines[i + 1].strip()
+                    for pattern in jp_patterns:
+                        jp_match = re.search(pattern, next_line, re.I)
+                        if jp_match:
+                            jp_story = jp_match.group(1)
+                            break
+                
+                # Pattern 3: Extract standalone numbers that look like story numbers (between episode and next line)
+                if not jp_story:
+                    # Look for isolated numbers in the current line (excluding episode numbers)
+                    numbers = re.findall(r'(?<![\dSEspe])\b(\d{2,3})\b(?![\dEspe])', line)
+                    if numbers:
+                        # Take the first plausible one (often 2-3 digits)
+                        jp_story = numbers[0]
                 
                 episodes.append({
                     'raw_episode': ep_raw,
@@ -100,19 +131,24 @@ def main():
     print(f"✅ SCRAPE COMPLETE: {len(episodes)} episodes")
     
     categories = {}
+    jp_count = 0
     for ep in episodes:
         cat = ep.get('category', 'unknown')
         categories[cat] = categories.get(cat, 0) + 1
+        if ep.get('jp_story_number'):
+            jp_count += 1
     
     print("\n📊 Category Distribution:")
     for cat, count in sorted(categories.items(), key=lambda x: -x[1]):
         print(f"  {cat}: {count}")
     
+    print(f"\n🇯🇵 Episodes with Japanese Story Numbers: {jp_count}")
+    
     os.makedirs('database', exist_ok=True)
     
     search_index = {
         'items': episodes,
-        'metadata': {'total': len(episodes), 'generated_at': datetime.now().isoformat(), 'source': 'doraemon-hindi-1979.netlify.app'}
+        'metadata': {'total': len(episodes), 'generated_at': datetime.now().isoformat(), 'source': 'doraemon-hindi-1979.netlify.app', 'jp_indexed': jp_count}
     }
     
     with open('database/search_index.json', 'w', encoding='utf-8') as f:
