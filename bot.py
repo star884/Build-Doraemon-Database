@@ -319,7 +319,144 @@ async def help_cmd(interaction):
 '''
     embed.set_footer(text='🇯🇵 ↔ 🇮🇳 Bidirectional JP ↔ IN Cross-Reference Search')
     await interaction.response.send_message(embed=embed)
+# --- ANIME TO MANGA ---
+@bot.tree.command(
+    name="anime",
+    description="Convert anime episode to manga chapter"
+)
+@app_commands.describe(
+    episode="Anime episode number"
+)
+async def anime_cmd(interaction, episode: str):
 
+    await interaction.response.defer()
+
+    results = []
+
+    for item in SEARCH_ITEMS:
+
+        anime = item.get("anime", {})
+
+        ep = str(
+            anime.get("indian_episode_number", "")
+        )
+
+        if episode.lower() in ep.lower():
+            results.append(item)
+
+
+    if not results:
+        await interaction.followup.send(
+            "❌ No anime episode found."
+        )
+        return
+
+
+    item = results[0]
+
+    anime = item["anime"]
+
+    embed = Embed(
+        title="🇮🇳 Anime → 📖 Manga",
+        color=0x6d4aff
+    )
+
+    embed.add_field(
+        name="Anime",
+        value=(
+            f"Episode: {anime.get('indian_episode_number','N/A')}\n"
+            f"Title: {anime.get('title','Unknown')}\n"
+            f"JP Story: {anime.get('japanese_story_number','N/A')}"
+        ),
+        inline=False
+    )
+
+
+    matches = item.get("manga_matches", [])
+
+    if matches:
+
+        manga = matches[0].get("manga", {})
+
+        embed.add_field(
+            name="Manga",
+            value=(
+                f"Title: {manga.get('title','Unknown')}\n"
+                f"Volume: {manga.get('volume','N/A')}\n"
+                f"Chapter: {manga.get('chapter_no','N/A')}"
+            ),
+            inline=False
+        )
+
+    else:
+        embed.add_field(
+            name="Manga",
+            value="No manga match found."
+        )
+
+
+    await interaction.followup.send(embed=embed)
+
+
+
+# --- MANGA TO ANIME ---
+@bot.tree.command(
+    name="manga",
+    description="Convert manga title to anime episode"
+)
+@app_commands.describe(
+    title="Manga title"
+)
+async def manga_cmd(interaction, title: str):
+
+    await interaction.response.defer()
+
+    matches=[]
+
+    query = title.lower()
+
+    for item in SEARCH_ITEMS:
+
+        for m in item.get("manga_matches", []):
+
+            manga = m.get("manga", {})
+
+            manga_title = str(
+                manga.get("title","")
+            ).lower()
+
+            if query in manga_title:
+                matches.append(item)
+
+
+    if not matches:
+
+        await interaction.followup.send(
+            "❌ No manga chapter found."
+        )
+        return
+
+
+    item = matches[0]
+
+    anime = item.get("anime",{})
+
+
+    embed = Embed(
+        title="📖 Manga → 🇮🇳 Anime",
+        color=0x6d4aff
+    )
+
+    embed.add_field(
+        name="Anime",
+        value=(
+            f"Episode: {anime.get('indian_episode_number','N/A')}\n"
+            f"Title: {anime.get('title','Unknown')}"
+        ),
+        inline=False
+    )
+
+    await interaction.followup.send(embed=embed)
 @bot.event
 async def on_ready():
     print(f'✅ Logged in as {bot.user}')
