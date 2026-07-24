@@ -1,17 +1,20 @@
 {
-  "total_episodes": 660,
-  "categories": [
-    "season_1",
-    "season_2",
-    "season_3",
-    "season_4",
-    "season_5",
-    "season_6",
-    "season_7",
-    "season_8",
-    "season_9",
-    "season_10",
-    "classic_doraemon"
-  ],
-  "generated_at": "2026-07-23T22:43:03.967764"
+  "generated_at": "2026-07-24T05:34:04.123112+00:00",
+  "sources": {
+    "anime_source": "https://doraemon-hindi-1979.netlify.app",
+    "manga_source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932"
+  },
+  "counts": {
+    "anime_items": 655,
+    "manga_items": 12,
+    "matched_manga_items": 0,
+    "unmatched_anime_items": 654,
+    "unmatched_manga_items": 12
+  },
+  "files": {
+    "episodes": "/home/runner/work/Build-Doraemon-Database/Build-Doraemon-Database/database/episodes.json",
+    "manga": "/home/runner/work/Build-Doraemon-Database/Build-Doraemon-Database/database/manga.json",
+    "search_index": "/home/runner/work/Build-Doraemon-Database/Build-Doraemon-Database/database/search_index.json",
+    "summary": "/home/runner/work/Build-Doraemon-Database/Build-Doraemon-Database/database/summary.json"
+  }
 }

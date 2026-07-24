@@ -1,8 +1,297 @@
 {
-  "metadata": {
-    "source": "Google Sheets",
-    "generated_at": "2026-07-23T22:43:03.967968"
-  },
-  "items": [],
-  "episode_count": 660
+  "source_url": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+  "collected_at": "2026-07-24T05:34:03.001609+00:00",
+  "row_count": 12,
+  "item_count": 12,
+  "new_items_this_run": 12,
+  "items": [
+    {
+      "source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+      "source_row_index": 0,
+      "raw_row": {
+        "Column A": "Date",
+        "Code for the magazine each story was first published in. Mostly for organizational purposes.": "Year and month each story was first published. For stories originally published over multiple months, the month when it first began is listed."
+      },
+      "title": "Date",
+      "jp_title": null,
+      "title_variants": [
+        "Date"
+      ],
+      "title_normalized": "date",
+      "jp_title_normalized": null,
+      "volume": null,
+      "chapter_no": null,
+      "japanese_story_number": null,
+      "indian_episode_number": null,
+      "alternate_title": null,
+      "notes": null,
+      "link": null,
+      "collected_at": "2026-07-24T05:34:03.000347+00:00",
+      "record_hash": "40ad27228ed897336f935b45b9a00777323ad218"
+    },
+    {
+      "source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+      "source_row_index": 1,
+      "raw_row": {
+        "Column A": "English title",
+        "Code for the magazine each story was first published in. Mostly for organizational purposes.": "English title of story, following the Kindle translation. The English titles in the the bilingual English–Japanese print series are often different, being direct translations of the Japanese titles."
+      },
+      "title": "English title",
+      "jp_title": null,
+      "title_variants": [
+        "English title"
+      ],
+      "title_normalized": "english title",
+      "jp_title_normalized": null,
+      "volume": null,
+      "chapter_no": null,
+      "japanese_story_number": null,
+      "indian_episode_number": null,
+      "alternate_title": null,
+      "notes": null,
+      "link": null,
+      "collected_at": "2026-07-24T05:34:03.000506+00:00",
+      "record_hash": "67c73ace8ff6669f196f81809a83c4fb3bd6a509"
+    },
+    {
+      "source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+      "source_row_index": 2,
+      "raw_row": {
+        "Column A": "Japanese title",
+        "Code for the magazine each story was first published in. Mostly for organizational purposes.": "Original Japanese title of story."
+      },
+      "title": "Japanese title",
+      "jp_title": null,
+      "title_variants": [
+        "Japanese title"
+      ],
+      "title_normalized": "japanese title",
+      "jp_title_normalized": null,
+      "volume": null,
+      "chapter_no": null,
+      "japanese_story_number": null,
+      "indian_episode_number": null,
+      "alternate_title": null,
+      "notes": null,
+      "link": null,
+      "collected_at": "2026-07-24T05:34:03.000625+00:00",
+      "record_hash": "2e4bcb66636a1e156c45d403e95b1ccfe7b2ce87"
+    },
+    {
+      "source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+      "source_row_index": 3,
+      "raw_row": {
+        "Column A": "English Kindle",
+        "Code for the magazine each story was first published in. Mostly for organizational purposes.": "Volume number in the English Kindle series. Those in the Doraemon Long Stories series are prefaced by \"L\"."
+      },
+      "title": "English Kindle",
+      "jp_title": null,
+      "title_variants": [
+        "English Kindle"
+      ],
+      "title_normalized": "english kindle",
+      "jp_title_normalized": null,
+      "volume": null,
+      "chapter_no": null,
+      "japanese_story_number": null,
+      "indian_episode_number": null,
+      "alternate_title": null,
+      "notes": null,
+      "link": null,
+      "collected_at": "2026-07-24T05:34:03.000753+00:00",
+      "record_hash": "55b194d2ea182a7c20b30cb3d5bc2e9ccb5b8a7d"
+    },
+    {
+      "source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+      "source_row_index": 4,
+      "raw_row": {
+        "Column A": "Bilingual Print",
+        "Code for the magazine each story was first published in. Mostly for organizational purposes.": "Volume number in the bilingual English–Japanese print series. Volumes in the 2002–2005 10-volume series are prefaced by \"1-\", those in the 2013–2014 6-volume series are prefaced by \"2-\", and those in the 2024 6-volume series are prefaced by \"3-\"."
+      },
+      "title": "Bilingual Print",
+      "jp_title": null,
+      "title_variants": [
+        "Bilingual Print"
+      ],
+      "title_normalized": "bilingual print",
+      "jp_title_normalized": null,
+      "volume": null,
+      "chapter_no": null,
+      "japanese_story_number": null,
+      "indian_episode_number": null,
+      "alternate_title": null,
+      "notes": null,
+      "link": null,
+      "collected_at": "2026-07-24T05:34:03.000864+00:00",
+      "record_hash": "5f4f479bccc2f3f01cca9e6d11d7bb5dffe43307"
+    },
+    {
+      "source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+      "source_row_index": 5,
+      "raw_row": {
+        "Column A": "Tankōbon",
+        "Code for the magazine each story was first published in. Mostly for organizational purposes.": "Volume number in the original Japanese print compilations. Includes the 45-volume release, Doraemon Plus (prefaced by \"+\"), Volume 0, and Doraemon Long Stories (prefaced by \"L\")."
+      },
+      "title": "Tankōbon",
+      "jp_title": null,
+      "title_variants": [
+        "Tankōbon"
+      ],
+      "title_normalized": "tank bon",
+      "jp_title_normalized": null,
+      "volume": null,
+      "chapter_no": null,
+      "japanese_story_number": null,
+      "indian_episode_number": null,
+      "alternate_title": null,
+      "notes": null,
+      "link": null,
+      "collected_at": "2026-07-24T05:34:03.000972+00:00",
+      "record_hash": "bedd948ee5b020636c698c81c4b189db0a0a1bca"
+    },
+    {
+      "source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+      "source_row_index": 6,
+      "raw_row": {
+        "Column A": "Complete Collection",
+        "Code for the magazine each story was first published in. Mostly for organizational purposes.": "Volume number in the Doraemon compilations for The Complete Works of Fujiko F. Fujio. The Doraemon Long Stories compilations are prefaced by \"L\"."
+      },
+      "title": "Complete Collection",
+      "jp_title": null,
+      "title_variants": [
+        "Complete Collection"
+      ],
+      "title_normalized": "complete collection",
+      "jp_title_normalized": null,
+      "volume": null,
+      "chapter_no": null,
+      "japanese_story_number": null,
+      "indian_episode_number": null,
+      "alternate_title": null,
+      "notes": null,
+      "link": null,
+      "collected_at": "2026-07-24T05:34:03.001080+00:00",
+      "record_hash": "b6b680658e2c6de990549f60883b0fbc71a08856"
+    },
+    {
+      "source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+      "source_row_index": 7,
+      "raw_row": {
+        "Column A": "1979 anime",
+        "Code for the magazine each story was first published in. Mostly for organizational purposes.": "Episode numbers for anime adaptations in the 1979 TV series (not including movies). Some special episodes in this series lack official numbers; these are indicated as \"Special\" accompanied by an unofficial number (following the fansite chinesedora.com) in parentheses. \"Ep 159A\", for example, indicates the first unnumbered special episode that aired after Episode 159."
+      },
+      "title": "1979 anime",
+      "jp_title": null,
+      "title_variants": [
+        "1979 anime"
+      ],
+      "title_normalized": "1979 anime",
+      "jp_title_normalized": null,
+      "volume": null,
+      "chapter_no": null,
+      "japanese_story_number": null,
+      "indian_episode_number": null,
+      "alternate_title": null,
+      "notes": null,
+      "link": null,
+      "collected_at": "2026-07-24T05:34:03.001190+00:00",
+      "record_hash": "a6ac79fb3d3ae8ce75c1b64f1da5e8ac2232b1be"
+    },
+    {
+      "source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+      "source_row_index": 8,
+      "raw_row": {
+        "Column A": "2005 anime",
+        "Code for the magazine each story was first published in. Mostly for organizational purposes.": "Episode numbers for anime adaptations in the 2005 TV series (not including movies). This series often bundles multiple separate segments into single episodes. Both the episode number and (in parentheses) the individual segment number are listed. \"Short\" indicates stories adapted as bonus shorts instead of full-length segments."
+      },
+      "title": "2005 anime",
+      "jp_title": null,
+      "title_variants": [
+        "2005 anime"
+      ],
+      "title_normalized": "2005 anime",
+      "jp_title_normalized": null,
+      "volume": null,
+      "chapter_no": null,
+      "japanese_story_number": null,
+      "indian_episode_number": null,
+      "alternate_title": null,
+      "notes": null,
+      "link": null,
+      "collected_at": "2026-07-24T05:34:03.001297+00:00",
+      "record_hash": "046bc33c2d495080e8dde153a380ed4d6720a61e"
+    },
+    {
+      "source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+      "source_row_index": 9,
+      "raw_row": {
+        "Column A": "Movie",
+        "Code for the magazine each story was first published in. Mostly for organizational purposes.": "Feature-length movie adaptations."
+      },
+      "title": "Movie",
+      "jp_title": null,
+      "title_variants": [
+        "Movie"
+      ],
+      "title_normalized": "movie",
+      "jp_title_normalized": null,
+      "volume": null,
+      "chapter_no": null,
+      "japanese_story_number": null,
+      "indian_episode_number": null,
+      "alternate_title": null,
+      "notes": null,
+      "link": null,
+      "collected_at": "2026-07-24T05:34:03.001401+00:00",
+      "record_hash": "033cba4197857f7a81380da3b79580b36f272101"
+    },
+    {
+      "source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+      "source_row_index": 10,
+      "raw_row": {
+        "Column A": "Short film",
+        "Code for the magazine each story was first published in. Mostly for organizational purposes.": "Short movie adaptations from the 1979 series originally released in theaters accompanying feature-length films."
+      },
+      "title": "Short film",
+      "jp_title": null,
+      "title_variants": [
+        "Short film"
+      ],
+      "title_normalized": "short film",
+      "jp_title_normalized": null,
+      "volume": null,
+      "chapter_no": null,
+      "japanese_story_number": null,
+      "indian_episode_number": null,
+      "alternate_title": null,
+      "notes": null,
+      "link": null,
+      "collected_at": "2026-07-24T05:34:03.001505+00:00",
+      "record_hash": "c5a1f434ddfde3ad11d7143c500b3f7b9376bfc2"
+    },
+    {
+      "source": "https://docs.google.com/spreadsheets/d/1wU1Yx4GWAuTviPtTvHlEljmul7W6hlNPEM_IGM25GX0/gviz/tq?tqx=out:csv&gid=413615932",
+      "source_row_index": 11,
+      "raw_row": {
+        "Column A": "Notes",
+        "Code for the magazine each story was first published in. Mostly for organizational purposes.": "Special notes about select chapters."
+      },
+      "title": "Notes",
+      "jp_title": null,
+      "title_variants": [
+        "Notes"
+      ],
+      "title_normalized": "notes",
+      "jp_title_normalized": null,
+      "volume": null,
+      "chapter_no": null,
+      "japanese_story_number": null,
+      "indian_episode_number": null,
+      "alternate_title": null,
+      "notes": null,
+      "link": null,
+      "collected_at": "2026-07-24T05:34:03.001606+00:00",
+      "record_hash": "a565a02105d1333c13c028001257c2a2077ff6ae"
+    }
+  ]
 }
