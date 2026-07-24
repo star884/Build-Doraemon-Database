@@ -11,16 +11,64 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.default())
 
-# Load database with JP references
+# Load new Doraemon database
 try:
-    with open('database/search_index.json') as f:
+    with open('database/search_index.json', encoding='utf-8') as f:
         DB = json.load(f)
-    EPISODES = DB.get('items', [])
-    print(f'✅ Loaded {len(EPISODES)} episodes from database')
-    print(f'   Episodes with JP refs: {sum(1 for e in EPISODES if e.get("jp_story_numbers"))}')
-except FileNotFoundError:
+
+    SEARCH_ITEMS = DB.get('items', [])
+
     EPISODES = []
-    print('❌ Database file not found')
+
+    for item in SEARCH_ITEMS:
+        anime = item.get("anime", {})
+
+        if not anime:
+            continue
+
+        episode = {
+            "title": anime.get("title", "Unknown"),
+            "story_a": anime.get("title", "Unknown"),
+            "story_b": None,
+
+            "in_season_episode": anime.get(
+                "indian_episode_number",
+                "N/A"
+            ),
+
+            "jp_story_numbers": [],
+
+            "category": (
+                "special_episodes"
+                if anime.get("special_episode")
+                else "classic_doraemon"
+                if not anime.get("season")
+                else f"season_{anime.get('season')}"
+            ),
+
+            "anime_data": anime,
+            "manga_matches": item.get("manga_matches", [])
+        }
+
+        jp = anime.get("japanese_story_number")
+
+        if jp:
+            episode["jp_story_numbers"] = [str(jp)]
+
+        EPISODES.append(episode)
+
+
+    print(f"✅ Loaded {len(EPISODES)} episodes from new database")
+    print(
+        f'   Episodes with JP refs: '
+        f'{sum(1 for e in EPISODES if e.get("jp_story_numbers"))}'
+    )
+
+except FileNotFoundError:
+    DB = {}
+    SEARCH_ITEMS = []
+    EPISODES = []
+    print("❌ Database file not found")
 
 # --- ADVANCED SEARCH COMMAND ---
 @bot.tree.command(name='search', description='Advanced search by JP story #, IN episode, SPE, or CE')
